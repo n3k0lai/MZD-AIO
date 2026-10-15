@@ -1,3 +1,0 @@
-# Set the Bar Speedometer flag
-sed -i 's/var barSpeedometerMod = .*;/var barSpeedometerMod = true;/g' /jci/gui/apps/_speedometer/js/speedometer-startup.js
-log_message "===                    START IN BAR SPEEDOMETER MODE                  ==="
