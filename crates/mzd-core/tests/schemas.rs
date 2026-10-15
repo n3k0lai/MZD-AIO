@@ -10,7 +10,9 @@ use mzd_core::manifest::Manifest;
 use schemars::{JsonSchema, schema_for};
 
 fn check<T: JsonSchema>(name: &str) -> Option<String> {
-    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../data/schema").join(name);
+    let path = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../data/schema")
+        .join(name);
     let want = serde_json::to_string_pretty(&schema_for!(T)).unwrap() + "\n";
     if std::env::var_os("UPDATE_SCHEMAS").is_some() {
         std::fs::create_dir_all(path.parent().unwrap()).unwrap();
@@ -33,5 +35,8 @@ fn schemas_are_up_to_date() {
     .into_iter()
     .flatten()
     .collect();
-    assert!(stale.is_empty(), "stale schemas (run with UPDATE_SCHEMAS=1): {stale:?}");
+    assert!(
+        stale.is_empty(),
+        "stale schemas (run with UPDATE_SCHEMAS=1): {stale:?}"
+    );
 }
