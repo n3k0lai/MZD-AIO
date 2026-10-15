@@ -221,8 +221,14 @@ fn untested_firmware_needs_explicit_opt_in() {
 
 // ---------------------------------------------------------------- running run.sh
 
-fn shells() -> Vec<Vec<String>> {
+/// Each entry: the shell command, plus an optional PATH (a BusyBox applet directory,
+/// so the whole script runs on BusyBox tools like it does on the CMU).
+fn shells() -> Vec<(Vec<String>, Option<String>)> {
     let mut out = Vec::new();
+    // Set by the Nix build to ${busybox}/bin.
+    if let Ok(bin) = std::env::var("MZD_TEST_BUSYBOX_BIN") {
+        out.push((vec![format!("{bin}/sh")], Some(bin)));
+    }
     for cand in [vec!["sh"], vec!["dash"], vec!["busybox", "sh"]] {
         let ok = Command::new(cand[0])
             .args(&cand[1..])
@@ -230,7 +236,7 @@ fn shells() -> Vec<Vec<String>> {
             .output()
             .is_ok_and(|o| o.status.success());
         if ok {
-            out.push(cand.into_iter().map(String::from).collect());
+            out.push((cand.into_iter().map(String::from).collect(), None));
         }
     }
     assert!(!out.is_empty(), "no POSIX shell found");
@@ -255,10 +261,11 @@ struct Cmu {
     root: PathBuf,
     usb: PathBuf,
     shell: Vec<String>,
+    path: Option<String>,
 }
 
 impl Cmu {
-    fn new(shell: &[String]) -> Self {
+    fn new((shell, path): &(Vec<String>, Option<String>)) -> Self {
         let dir = tempfile::tempdir().unwrap();
         let root = dir.path().join("root");
         copy_tree(Path::new(FIXTURE), &root);
@@ -267,7 +274,8 @@ impl Cmu {
             root,
             usb,
             _dir: dir,
-            shell: shell.to_vec(),
+            shell: shell.clone(),
+            path: path.clone(),
         }
     }
 
@@ -282,8 +290,11 @@ impl Cmu {
             fs::create_dir_all(dst.parent().unwrap()).unwrap();
             fs::write(dst, data).unwrap();
         }
-        Command::new(&self.shell[0])
-            .args(&self.shell[1..])
+        let mut cmd = Command::new(&self.shell[0]);
+        if let Some(p) = &self.path {
+            cmd.env("PATH", p);
+        }
+        cmd.args(&self.shell[1..])
             .arg(self.usb.join("run.sh"))
             .env("MZD_ROOT", &self.root)
             .env("MZD_SIMULATE", "1")
