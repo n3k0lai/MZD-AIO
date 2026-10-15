@@ -11,8 +11,8 @@ Tools (MCP server `mzd-tweaks-mcp`, or the `mzd-tweaks` CLI):
 
 ## Workflow
 
-1. **Get the exact firmware.** Ask for the full version from Settings → System
-   Information (e.g. `70.00.352B`, `59.00.540`). Never guess it, and note that the
+1. **Get the exact firmware.** Ask for the full version shown in the CMU's version
+   information screen (e.g. `70.00.352B`, `59.00.540`). Never guess it, and note that the
    sticker on the unit can differ from what the CMU reports (trust the CMU).
 2. `check_compat` with that version. If the profile is not a target, say so and stop
    unless the user knowingly accepts an untested profile.
