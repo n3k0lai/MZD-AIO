@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FirmwareFile",
+  "type": "object",
+  "properties": {
+    "profile": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Profile"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "profile"
+  ],
+  "$defs": {
+    "BackupPolicy": {
+      "oneOf": [
+        {
+          "description": "`<file>.mzd-orig` next to the file.",
+          "type": "object",
+          "properties": {
+            "strategy": {
+              "type": "string",
+              "const": "sibling"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "strategy"
+          ]
+        },
+        {
+          "description": "Mirrored tree under `dir`.",
+          "type": "object",
+          "properties": {
+            "dir": {
+              "type": "string"
+            },
+            "strategy": {
+              "type": "string",
+              "const": "dir"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "strategy",
+            "dir"
+          ]
+        }
+      ]
+    },
+    "FirstAccess": {
+      "type": "string",
+      "enum": [
+        "serial-autorun",
+        "usb-dataretrieval",
+        "none"
+      ]
+    },
+    "Profile": {
+      "type": "object",
+      "properties": {
+        "backup": {
+          "$ref": "#/$defs/BackupPolicy"
+        },
+        "first_access": {
+          "$ref": "#/$defs/FirstAccess"
+        },
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "major": {
+          "type": "integer",
+          "format": "uint16",
+          "maximum": 65535,
+          "minimum": 0
+        },
+        "major_min": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint16",
+          "maximum": 65535,
+          "minimum": 0
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "patch_max": {
+          "type": "integer",
+          "format": "uint16",
+          "maximum": 65535,
+          "minimum": 0
+        },
+        "patch_min": {
+          "type": "integer",
+          "format": "uint16",
+          "maximum": 65535,
+          "minimum": 0
+        },
+        "rootfs_reserve_kib": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "rootfs_tight": {
+          "type": "boolean"
+        },
+        "status": {
+          "$ref": "#/$defs/ProfileStatus"
+        },
+        "units": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "major",
+        "patch_min",
+        "patch_max",
+        "status",
+        "first_access",
+        "backup",
+        "rootfs_reserve_kib",
+        "rootfs_tight",
+        "units",
+        "notes"
+      ]
+    },
+    "ProfileStatus": {
+      "type": "string",
+      "enum": [
+        "target",
+        "untested",
+        "legacy",
+        "blocked"
+      ]
+    }
+  }
+}

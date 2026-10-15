@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Safety",
+  "type": "object",
+  "properties": {
+    "default_reserve_kib": {
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0
+    },
+    "exec_prefixes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "payload_max_bytes": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "protected_paths": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "rootfs_warn_bytes": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "rule": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Rule"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "protected_paths",
+    "exec_prefixes",
+    "payload_max_bytes",
+    "rootfs_warn_bytes",
+    "default_reserve_kib",
+    "rule"
+  ],
+  "$defs": {
+    "Rule": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "summary"
+      ]
+    }
+  }
+}

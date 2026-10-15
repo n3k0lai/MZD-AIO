@@ -1,0 +1,17 @@
+[package]
+name = "mzd-transport"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+serialport = { version = "4.10.1", default-features = false, optional = true }
+thiserror = "2.0.21"
+
+[lints]
+workspace = true
+
+[features]
+serialport = ["dep:serialport"]

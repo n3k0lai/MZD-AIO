@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BundleConfig",
+  "type": "object",
+  "properties": {
+    "allow_untested_firmware": {
+      "description": "Permit firmware newer than anything tested.",
+      "type": "boolean",
+      "default": false
+    },
+    "firmware": {
+      "description": "Exact firmware of the target CMU, e.g. \"70.00.352B\".",
+      "type": "string"
+    },
+    "mode": {
+      "$ref": "#/$defs/Mode",
+      "default": "check"
+    },
+    "reboot": {
+      "description": "Reboot after a successful apply so the GUI reloads.",
+      "type": "boolean",
+      "default": true
+    },
+    "tweak": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/TweakEntry"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "firmware",
+    "tweak"
+  ],
+  "$defs": {
+    "Action": {
+      "type": "string",
+      "enum": [
+        "install",
+        "uninstall"
+      ]
+    },
+    "Mode": {
+      "oneOf": [
+        {
+          "description": "The CMU runs every preflight check, logs to the USB stick, and changes nothing.",
+          "type": "string",
+          "const": "check"
+        },
+        {
+          "description": "Preflight, backups, then the changes.",
+          "type": "string",
+          "const": "apply"
+        }
+      ]
+    },
+    "TweakEntry": {
+      "type": "object",
+      "properties": {
+        "acknowledge": {
+          "description": "Required for tweaks that reduce driving safety; must equal the tweak's token.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "action": {
+          "$ref": "#/$defs/Action",
+          "default": "install"
+        },
+        "id": {
+          "type": "string"
+        },
+        "options": {
+          "type": "object",
+          "additionalProperties": true,
+          "default": {}
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id"
+      ]
+    }
+  }
+}

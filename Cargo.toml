@@ -1,0 +1,16 @@
+[workspace]
+resolver = "3"
+members = ["crates/mzd-core", "crates/mzd-transport", "crates/mzd-mcp", "crates/mzd-cli"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+license = "GPL-3.0-only"
+repository = "https://github.com/n3k0lai/MZD-AIO"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
