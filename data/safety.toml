@@ -1,0 +1,61 @@
+# Safety rules enforced by mzd-core when planning a bundle. Rule ids appear in error
+# messages; the checks themselves live in crates/mzd-core/src/safety.rs.
+
+# Files upstream documents must never be reverted once changed (boot-loop risk).
+protected_paths = [
+  "/jci/sm/sm.conf",
+  "/jci/opera/opera_home/opera.ini",
+  "/jci/opera/opera_dir/userjs/fps.js",
+]
+
+# `exec` steps may only run stock scripts under these prefixes.
+exec_prefixes = ["/jci/scripts/"]
+
+# Largest single payload a bundle may carry.
+payload_max_bytes = 1048576
+
+# Warn when a bundle writes more than this to rootfs on a profile with rootfs_tight.
+rootfs_warn_bytes = 262144
+
+# Free space (KiB) kept on non-rootfs partitions; rootfs uses the profile's reserve.
+default_reserve_kib = 1024
+
+[[rule]]
+id = "S01"
+summary = "Firmware must be given exactly and match a target profile; the CMU re-checks it before changing anything."
+
+[[rule]]
+id = "S02"
+summary = "Protected files are never restored, replaced or cleaned up, and only permanent prerequisites may edit them, never on uninstall."
+
+[[rule]]
+id = "S03"
+summary = "Every file a tweak writes on install is backed up first; backups are never overwritten."
+
+[[rule]]
+id = "S04"
+summary = "Every file a tweak writes has its own preflight check, and all preflight checks pass before the first write."
+
+[[rule]]
+id = "S05"
+summary = "CMU paths are absolute plain paths; payloads stay under payload/; literals are single lines; exec runs only stock scripts with plain arguments."
+
+[[rule]]
+id = "S06"
+summary = "Literal replacements are idempotent: find and replace never contain each other."
+
+[[rule]]
+id = "S07"
+summary = "Free space is checked on the CMU for every partition written, with a reserve kept on rootfs."
+
+[[rule]]
+id = "S08"
+summary = "Tweaks that reduce driving safety need an explicit acknowledgement token in the config."
+
+[[rule]]
+id = "S09"
+summary = "Bundles default to check mode: the CMU runs preflight, logs to the USB stick and changes nothing."
+
+[[rule]]
+id = "S10"
+summary = "Payloads are size-limited; images must match the CMU screen size."

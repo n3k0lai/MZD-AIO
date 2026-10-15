@@ -1,0 +1,547 @@
+# Tweak catalog. Ported tweaks are pure data: a list of steps from the closed set in
+# docs/ARCHITECTURE.md ("Step ops"). No tweak carries its own shell.
+#
+# Upstream paths (`upstream`) point into MZD-AIO-TI 2.8.6 at commit 409c724 and are
+# guidance only: `git show 409c724:<path>`.
+#
+# Step fields: op, path, and per op:
+#   require_file      -
+#   require_literal   literal, count (exact line count; omit for "at least one"),
+#                     applied (literal meaning "already done"), hint
+#   require_backup    -
+#   backup            -
+#   append_block      block, asset (under assets/)
+#   remove_block      block
+#   replace_literal   find, replace
+#   install_file      option (a file-typed option)
+#   restore           -
+#   exec              argv (path is argv[0])
+# Optional on any step: when = "<bool option>" or unless = "<bool option>".
+
+# ---------------------------------------------------------------- prerequisites
+
+[[tweak]]
+id = "sm-watchdog-off"
+status = "ported"
+title = "Disable sm.conf watchdogs (prerequisite)"
+summary = "Turn off system-manager watchdogs so a broken GUI patch hangs (recoverable) instead of reboot-looping."
+risk = "medium"
+prerequisite = true
+permanent = true
+requires = []
+compat = [{ profile = "v70-00x", evidence = "upstream" }, { profile = "v59-5xx", evidence = "upstream" }]
+upstream = ["app/files/tweaks/00_start.txt"]
+notes = ["Added automatically for tweaks that patch GUI JavaScript.", "Never reverted (rule S02)."]
+
+[[tweak.install]]
+op = "require_literal"
+path = "/jci/sm/sm.conf"
+literal = 'watchdog_enable="true"'
+applied = 'watchdog_enable="false"'
+
+[[tweak.install]]
+op = "require_literal"
+path = "/jci/sm/sm.conf"
+literal = 'args="-u /jci/gui/index.html"'
+applied = 'args="-u /jci/gui/index.html --noWatchdogs"'
+
+[[tweak.install]]
+op = "backup"
+path = "/jci/sm/sm.conf"
+
+[[tweak.install]]
+op = "replace_literal"
+path = "/jci/sm/sm.conf"
+find = 'watchdog_enable="true"'
+replace = 'watchdog_enable="false"'
+
+[[tweak.install]]
+op = "replace_literal"
+path = "/jci/sm/sm.conf"
+find = 'args="-u /jci/gui/index.html"'
+replace = 'args="-u /jci/gui/index.html --noWatchdogs"'
+
+# ---------------------------------------------------------------- ported
+
+[[tweak]]
+id = "no-disclaimer"
+status = "ported"
+title = "No more disclaimer"
+summary = "Accept the boot disclaimer automatically."
+risk = "low"
+requires = ["sm-watchdog-off"]
+compat = [{ profile = "v70-00x", evidence = "upstream" }, { profile = "v59-5xx", evidence = "upstream" }]
+upstream = [
+  "app/files/tweaks/02_disclaimer-i.txt",
+  "app/files/tweaks/02_disclaimer-u.txt",
+  "app/files/tweaks/config/audio_order_AND_no_More_Disclaimer/",
+]
+notes = [
+  "Upstream replaced systemApp.js with a copy from one firmware build per family; this wraps the stock function instead.",
+  "Verify on hardware: the disclaimer should dismiss itself within a second of boot.",
+]
+
+[[tweak.install]]
+op = "require_literal"
+path = "/jci/gui/apps/system/js/systemApp.js"
+literal = "systemApp.prototype._displayedDisclaimer = function"
+count = 1
+hint = "systemApp.js may have been replaced by legacy MZD-AIO; uninstall that first."
+
+[[tweak.install]]
+op = "backup"
+path = "/jci/gui/apps/system/js/systemApp.js"
+
+[[tweak.install]]
+op = "append_block"
+path = "/jci/gui/apps/system/js/systemApp.js"
+block = "no-disclaimer"
+asset = "patches/no-disclaimer.js"
+
+[[tweak.uninstall]]
+op = "require_file"
+path = "/jci/gui/apps/system/js/systemApp.js"
+
+[[tweak.uninstall]]
+op = "remove_block"
+path = "/jci/gui/apps/system/js/systemApp.js"
+block = "no-disclaimer"
+
+[[tweak]]
+id = "list-loop"
+status = "ported"
+title = "List loop"
+summary = "Scrolling past the end of a list wraps to the other end."
+risk = "low"
+requires = ["sm-watchdog-off"]
+compat = [{ profile = "v70-00x", evidence = "upstream" }, { profile = "v59-5xx", evidence = "upstream" }]
+upstream = [
+  "app/files/tweaks/06_listloop-i.txt",
+  "app/files/tweaks/06_listloop-u.txt",
+  "app/files/tweaks/config/list-loop/",
+]
+notes = ["Verify on hardware: lazily loaded lists may only wrap within the loaded window."]
+
+[[tweak.install]]
+op = "require_literal"
+path = "/jci/gui/common/controls/List2/js/List2Ctrl.js"
+literal = "List2Ctrl.prototype._handleMCCW = function"
+count = 1
+
+[[tweak.install]]
+op = "require_literal"
+path = "/jci/gui/common/controls/List2/js/List2Ctrl.js"
+literal = "List2Ctrl.prototype._handleMCCCW = function"
+count = 1
+
+[[tweak.install]]
+op = "require_literal"
+path = "/jci/gui/common/controls/List2/js/List2Ctrl.js"
+literal = "List2Ctrl.prototype._handleMCDown = function"
+count = 1
+
+[[tweak.install]]
+op = "require_literal"
+path = "/jci/gui/common/controls/List2/js/List2Ctrl.js"
+literal = "List2Ctrl.prototype._handleMCUp = function"
+count = 1
+
+[[tweak.install]]
+op = "require_literal"
+path = "/jci/gui/common/controls/List2/js/List2Ctrl.js"
+literal = "List2Ctrl.prototype._getFocussedIndex = function"
+count = 1
+
+[[tweak.install]]
+op = "require_literal"
+path = "/jci/gui/common/controls/List2/js/List2Ctrl.js"
+literal = "List2Ctrl.prototype._manageFocus = function"
+count = 1
+
+[[tweak.install]]
+op = "backup"
+path = "/jci/gui/common/controls/List2/js/List2Ctrl.js"
+
+[[tweak.install]]
+op = "append_block"
+path = "/jci/gui/common/controls/List2/js/List2Ctrl.js"
+block = "list-loop"
+asset = "patches/list-loop.js"
+
+[[tweak.uninstall]]
+op = "require_file"
+path = "/jci/gui/common/controls/List2/js/List2Ctrl.js"
+
+[[tweak.uninstall]]
+op = "remove_block"
+path = "/jci/gui/common/controls/List2/js/List2Ctrl.js"
+block = "list-loop"
+
+[[tweak]]
+id = "background"
+status = "ported"
+title = "Background image"
+summary = "Replace the home-screen background with an 800x480 PNG."
+risk = "low"
+requires = []
+compat = [{ profile = "v70-00x", evidence = "upstream" }, { profile = "v59-5xx", evidence = "upstream" }]
+upstream = ["app/files/tweaks/00_background.txt"]
+notes = ["Prefer a dark image to keep night glare down.", "Uninstall restores the backup taken at install."]
+
+[[tweak.option]]
+name = "image"
+type = "png"
+width = 800
+height = 480
+description = "Path to the PNG, relative to the config file."
+
+[[tweak.install]]
+op = "require_file"
+path = "/jci/gui/common/images/background.png"
+
+[[tweak.install]]
+op = "backup"
+path = "/jci/gui/common/images/background.png"
+
+[[tweak.install]]
+op = "install_file"
+path = "/jci/gui/common/images/background.png"
+option = "image"
+
+[[tweak.uninstall]]
+op = "require_backup"
+path = "/jci/gui/common/images/background.png"
+
+[[tweak.uninstall]]
+op = "restore"
+path = "/jci/gui/common/images/background.png"
+
+[[tweak]]
+id = "touchscreen-at-speed"
+status = "ported"
+title = "Touchscreen while moving"
+summary = "Keep the touchscreen and speed-locked menus usable while moving."
+risk = "medium"
+requires = ["sm-watchdog-off"]
+acknowledge = "driving-distraction"
+acknowledge_why = "Removes Mazda's lockout of touch and menus while moving. Intended for a passenger."
+compat = [{ profile = "v70-00x", evidence = "upstream" }, { profile = "v59-5xx", evidence = "upstream" }]
+upstream = ["app/files/tweaks/01_touchscreen-i.txt", "app/files/tweaks/01_touchscreen-u.txt"]
+notes = [
+  "Renames the Global.AtSpeed subscription key, which works on any line layout and reverts exactly.",
+  "Also runs Mazda's own speed-restriction scripts, whose state lives outside /jci.",
+  "Upstream's DVD-while-driving call is not ported.",
+]
+
+[[tweak.option]]
+name = "keep_speed_restrict"
+type = "bool"
+default = false
+description = "Keep the stock speed-restriction script enabled (upstream: keeps the cluster compass working)."
+
+[[tweak.install]]
+op = "require_literal"
+path = "/jci/gui/common/js/Common.js"
+literal = '"Global.AtSpeed"'
+count = 1
+applied = '"Global.AtSpeed_mzdDisabled"'
+
+[[tweak.install]]
+op = "backup"
+path = "/jci/gui/common/js/Common.js"
+
+[[tweak.install]]
+op = "replace_literal"
+path = "/jci/gui/common/js/Common.js"
+find = '"Global.AtSpeed"'
+replace = '"Global.AtSpeed_mzdDisabled"'
+
+[[tweak.install]]
+op = "exec"
+argv = ["/jci/scripts/set_speed_restriction_config.sh", "disable"]
+unless = "keep_speed_restrict"
+
+[[tweak.install]]
+op = "exec"
+argv = ["/jci/scripts/set_speed_restriction_config.sh", "enable"]
+when = "keep_speed_restrict"
+
+[[tweak.install]]
+op = "exec"
+argv = ["/jci/scripts/set_lvds_speed_restriction_config.sh", "disable"]
+
+[[tweak.uninstall]]
+op = "require_literal"
+path = "/jci/gui/common/js/Common.js"
+literal = '"Global.AtSpeed_mzdDisabled"'
+count = 1
+applied = '"Global.AtSpeed"'
+
+[[tweak.uninstall]]
+op = "replace_literal"
+path = "/jci/gui/common/js/Common.js"
+find = '"Global.AtSpeed_mzdDisabled"'
+replace = '"Global.AtSpeed"'
+
+[[tweak.uninstall]]
+op = "exec"
+argv = ["/jci/scripts/set_speed_restriction_config.sh", "enable"]
+
+[[tweak.uninstall]]
+op = "exec"
+argv = ["/jci/scripts/set_lvds_speed_restriction_config.sh", "enable"]
+
+# ---------------------------------------------------------------- unported
+# Catalogued, deliberately not half-ported.
+
+[[tweak]]
+id = "backup-jci"
+status = "unported"
+title = "Back up /jci to USB"
+upstream = ["app/files/tweaks/00_backup.txt"]
+notes = ["Good first bench job: gives us both firmware trees to diff."]
+
+[[tweak]]
+id = "background-rotator"
+status = "unported"
+title = "Background rotator"
+upstream = ["app/files/tweaks/00_bgrotator-i.txt", "app/files/tweaks/00_bgrotator-u.txt"]
+notes = []
+
+[[tweak]]
+id = "off-screen-background"
+status = "unported"
+title = "Off-screen background"
+upstream = ["app/files/tweaks/00_offbackground-i.txt", "app/files/tweaks/00_offbackground-u.txt"]
+notes = []
+
+[[tweak]]
+id = "color-scheme"
+status = "unported"
+title = "Color schemes and themes"
+upstream = ["app/files/tweaks/21_colors-i.txt", "app/files/tweaks/21_theme-i.txt", "app/files/tweaks/config/themes/"]
+notes = ["Upstream downloaded colour packs from trevelopment.win, which is dead."]
+
+[[tweak]]
+id = "wifi-enable"
+status = "unported"
+title = "Wi-Fi enable (NA/JP)"
+upstream = ["app/files/tweaks/00_wifi.txt"]
+notes = ["Upstream had no uninstall."]
+
+[[tweak]]
+id = "ssh-access"
+status = "unported"
+title = "SSH access"
+upstream = ["app/files/tweaks/00_sshbringback.txt", "app/files/tweaks/config/ssh_bringback/"]
+notes = ["Upstream bundled public SSH keys and an sshd_config with root login and empty passwords. Must use user-supplied keys and a hardened config."]
+
+[[tweak]]
+id = "sd-cid"
+status = "unported"
+title = "Nav SD card CID reader"
+upstream = ["app/files/tweaks/00_sd-cid.txt", "app/files/tweaks/config/get_sd_cid/"]
+notes = []
+
+[[tweak]]
+id = "main-menu-layout"
+status = "unported"
+title = "Main menu layouts"
+upstream = ["app/files/tweaks/20_mainmenu-i.txt", "app/files/tweaks/20_mainmenu-u.txt", "app/files/tweaks/MainMenuTweaks/"]
+notes = []
+
+[[tweak]]
+id = "ui-text-colors"
+status = "unported"
+title = "UI text colors"
+upstream = ["app/files/tweaks/20_uistyle-i.txt", "app/files/tweaks/20_uistyle-u.txt"]
+notes = []
+
+[[tweak]]
+id = "full-restore"
+status = "unported"
+title = "Full system restore"
+upstream = ["app/files/tweaks/00___fullRestore.sh"]
+notes = ["Upstream relied on v70.00.100 fallback copies of JCI files; needs per-firmware originals from the bench."]
+
+[[tweak]]
+id = "reverse-camera-warning"
+status = "unported"
+title = "Reverse camera warning removal"
+upstream = ["app/files/tweaks/03_warning-i.txt", "app/files/tweaks/03_warning-u.txt"]
+notes = []
+
+[[tweak]]
+id = "parking-sensor-transparent"
+status = "unported"
+title = "Semi-transparent parking sensors"
+upstream = ["app/files/tweaks/04_sensor-i.txt", "app/files/tweaks/04_sensor-u.txt"]
+notes = []
+
+[[tweak]]
+id = "main-menu-loop"
+status = "unported"
+title = "Main menu loop"
+upstream = ["app/files/tweaks/05_mainloop-i.txt", "app/files/tweaks/05_mainloop-u.txt"]
+notes = []
+
+[[tweak]]
+id = "list-shorter-delay"
+status = "unported"
+title = "Shorter list autoscroll delay"
+upstream = ["app/files/tweaks/07_shorterdelay-i.txt", "app/files/tweaks/07_shorterdelay-u.txt"]
+notes = []
+
+[[tweak]]
+id = "list-beep-off"
+status = "unported"
+title = "List beep off"
+upstream = ["app/files/tweaks/07_listbeep-i.txt", "app/files/tweaks/07_listbeep-u.txt"]
+notes = []
+
+[[tweak]]
+id = "system-beeps-off"
+status = "unported"
+title = "System beeps off"
+upstream = ["app/files/tweaks/08_sysbeep-i.txt", "app/files/tweaks/08_sysbeep-u.txt"]
+notes = []
+
+[[tweak]]
+id = "audio-source-order"
+status = "unported"
+title = "Audio source order"
+upstream = ["app/files/tweaks/09_audioorder-i.txt", "app/files/tweaks/09_audioorder-u.txt"]
+notes = ["Shares systemApp.js with no-disclaimer; port as another appended block."]
+
+[[tweak]]
+id = "media-order-flac"
+status = "unported"
+title = "Media order and FLAC"
+upstream = ["app/files/tweaks/08_orderflac-i.txt", "app/files/tweaks/08_orderflac-u.txt"]
+notes = ["Upstream whitelist ends near 59.00.443; not for 59.00.502+ or 70."]
+
+[[tweak]]
+id = "pause-on-mute"
+status = "unported"
+title = "Pause on mute"
+upstream = ["app/files/tweaks/10_pausemute-i.txt", "app/files/tweaks/10_pausemute-u.txt"]
+notes = ["Built in on v70."]
+
+[[tweak]]
+id = "sms-signature-off"
+status = "unported"
+title = "Remove SMS signature"
+upstream = ["app/files/tweaks/11_msgreplies-i.txt", "app/files/tweaks/11_msgreplies-u.txt"]
+notes = ["Upstream ended with a factory reset."]
+
+[[tweak]]
+id = "diag-menu-1s"
+status = "unported"
+title = "One-second diagnostic menu"
+upstream = ["app/files/tweaks/12_diag-i.txt", "app/files/tweaks/12_diag-u.txt"]
+notes = []
+
+[[tweak]]
+id = "boot-animation"
+status = "unported"
+title = "Boot animation"
+upstream = ["app/files/tweaks/13_boot-i.txt", "app/files/tweaks/13_boot-u.txt", "app/files/tweaks/config/bootanimation/"]
+notes = []
+
+[[tweak]]
+id = "bigger-album-art"
+status = "unported"
+title = "Bigger album art"
+upstream = ["app/files/tweaks/14_bgart-i.txt", "app/files/tweaks/14_bgart-u.txt"]
+notes = []
+
+[[tweak]]
+id = "no-button-backgrounds"
+status = "unported"
+title = "No button backgrounds"
+upstream = ["app/files/tweaks/15_btnbackground-i.txt", "app/files/tweaks/15_btnbackground-u.txt"]
+notes = []
+
+[[tweak]]
+id = "blank-album-frame"
+status = "unported"
+title = "Blank album art frame"
+upstream = ["app/files/tweaks/16_blnkframe-i.txt", "app/files/tweaks/16_blnkframe-u.txt"]
+notes = []
+
+[[tweak]]
+id = "status-bar"
+status = "unported"
+title = "Status bar date and tweaks"
+upstream = ["app/files/tweaks/20_date-iv3.3.txt", "app/files/tweaks/20_statusbar_tweaks-i.txt"]
+notes = []
+
+[[tweak]]
+id = "fuel-consumption"
+status = "unported"
+title = "Fuel consumption units"
+upstream = ["app/files/tweaks/22_fuel-i.txt", "app/files/tweaks/22_fuel-u.txt"]
+notes = []
+
+[[tweak]]
+id = "video-player"
+status = "unported"
+title = "Video player"
+upstream = ["app/files/tweaks/17_videoplayer-i.txt", "app/files/tweaks/17_videoplayer-u.txt"]
+notes = ["Not driving-safe; would need a parked-only gate."]
+
+[[tweak]]
+id = "swapfile"
+status = "unported"
+title = "USB swapfile"
+upstream = ["app/files/tweaks/18_swapfile-i.txt", "app/files/tweaks/18_swapfile-u.txt"]
+notes = []
+
+[[tweak]]
+id = "speedometer"
+status = "unported"
+title = "Speedometer app"
+upstream = ["app/files/tweaks/19_speedo-i1.txt", "app/files/tweaks/19_speedo-i2.txt", "app/files/tweaks/19_speedo-u.txt"]
+notes = ["Upstream references missing fragments (19_set_sb_values.txt, 19_speedo-slovic.txt)."]
+
+[[tweak]]
+id = "castscreen"
+status = "unported"
+title = "Castscreen receiver"
+upstream = ["app/files/tweaks/24_castscreen-i.txt", "app/files/tweaks/24_castscreen-u.txt"]
+notes = []
+
+[[tweak]]
+id = "android-auto-headunit"
+status = "unported"
+title = "Android Auto (headunit app)"
+upstream = ["app/files/tweaks/25_androidauto-i.txt", "app/files/tweaks/25_androidauto-u.txt"]
+notes = []
+
+[[tweak]]
+id = "usb-audio-mod"
+status = "unported"
+title = "USB Audio Mod"
+upstream = ["app/files/tweaks/26_usbaudiomod-i.txt", "app/files/tweaks/26_usbaudiomod-u.txt"]
+notes = ["Not for 59.00.502+."]
+
+[[tweak]]
+id = "aio-tweaks-app"
+status = "unported"
+title = "AIO Tweaks app"
+upstream = ["app/files/tweaks/27_aioapp-i.txt"]
+notes = []
+
+[[tweak]]
+id = "casdk"
+status = "unported"
+title = "CASDK and mini apps"
+upstream = ["app/files/tweaks/00__casdk-i.txt", "app/files/tweaks/00__casdkapps-i.txt"]
+notes = []
+
+[[tweak]]
+id = "autorun-recovery"
+status = "unported"
+title = "Autorun and recovery hooks"
+upstream = ["app/files/tweaks/cmu-autorun/"]
+notes = ["Harness-critical. To be rewritten minimal and installed over serial by the bench."]

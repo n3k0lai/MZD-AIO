@@ -1,0 +1,106 @@
+# CMU firmware profiles. Compatibility is data: bench findings (for example, closing
+# the 59-vs-70 gap) land here and in each tweak's `compat` list, not as code branches.
+#
+# status:
+#   target    a unit we own and build for
+#   untested  newer than anything upstream tested; refused unless the config allows it
+#   legacy    upstream supported it; this rewrite has not looked at it; refused
+#   blocked   known brick risk; always refused
+#
+# A version outside every profile, or with a middle field other than 00 (a
+# development build), is treated as blocked.
+#
+# A profile matches major_min..=major (major_min defaults to major) and
+# patch_min..=patch_max of the version "MAJOR.00.PATCH".
+
+[[profile]]
+id = "v70-00x"
+label = "70.00.000 - 70.00.360"
+major = 70
+patch_min = 0
+patch_max = 360
+status = "target"
+first_access = "serial-autorun"
+backup = { strategy = "dir", dir = "/tmp/mnt/resources/dev/mzd-tweaks/backup" }
+rootfs_reserve_kib = 4096
+rootfs_tight = true
+units = ["CMU 2: TA0A 66 9C0 A, 70.00.352B (2020)"]
+notes = [
+  "Upstream tested through 70.00.352.",
+  "rootfs ships nearly full; filling it soft-bricks the unit, so backups go to the resources partition.",
+  "The USB data-retrieval unlock is closed; first access is over serial to install an autorun hook.",
+]
+
+[[profile]]
+id = "v59-5xx"
+label = "59.00.500 - 59.00.599"
+major = 59
+patch_min = 500
+patch_max = 599
+status = "target"
+first_access = "serial-autorun"
+backup = { strategy = "sibling" }
+rootfs_reserve_kib = 2048
+rootfs_tight = false
+units = ["CMU 1: KB7W 66 9C0 F, 59.00.540 (sticker 59.00.544), on the shelf"]
+notes = [
+  "59.00.502+ closed the USB data-retrieval unlock; first access is over serial.",
+  "Upstream's USB Audio Mod and media-order patches do not support 59.00.502+.",
+]
+
+[[profile]]
+id = "v70-361plus"
+label = "70.00.361 and newer"
+major = 70
+patch_min = 361
+patch_max = 999
+status = "untested"
+first_access = "serial-autorun"
+backup = { strategy = "dir", dir = "/tmp/mnt/resources/dev/mzd-tweaks/backup" }
+rootfs_reserve_kib = 4096
+rootfs_tight = true
+units = []
+notes = ["Newer than anything upstream tested."]
+
+[[profile]]
+id = "v59-4xx"
+label = "59.00.400 - 59.00.499"
+major = 59
+patch_min = 400
+patch_max = 499
+status = "legacy"
+first_access = "usb-dataretrieval"
+backup = { strategy = "sibling" }
+rootfs_reserve_kib = 2048
+rootfs_tight = false
+units = []
+notes = ["Upstream supported; not a target of this rewrite yet."]
+
+[[profile]]
+id = "v59-3xx"
+label = "59.00.300 - 59.00.399"
+major = 59
+patch_min = 300
+patch_max = 399
+status = "legacy"
+first_access = "usb-dataretrieval"
+backup = { strategy = "sibling" }
+rootfs_reserve_kib = 2048
+rootfs_tight = false
+units = []
+notes = ["Upstream supported; not a target of this rewrite yet."]
+
+[[profile]]
+id = "v55-58"
+label = "55.00.xxx - 58.00.xxx"
+major_min = 55
+major = 58
+patch_min = 0
+patch_max = 999
+status = "legacy"
+first_access = "usb-dataretrieval"
+backup = { strategy = "sibling" }
+rootfs_reserve_kib = 2048
+rootfs_tight = false
+units = []
+notes = ["Upstream supported; not a target of this rewrite yet."]
