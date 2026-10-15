@@ -541,6 +541,7 @@ dependencies = [
  "clap",
  "mzd-core",
  "mzd-transport",
+ "serde",
  "serde_json",
 ]
 
@@ -568,6 +569,7 @@ dependencies = [
  "schemars",
  "serde",
  "serde_json",
+ "tempfile",
  "tokio",
 ]
 

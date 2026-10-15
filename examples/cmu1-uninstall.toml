@@ -1,0 +1,13 @@
+# Starting example: undo the two GUI tweaks on CMU 1 (KB7W, 59.00.540).
+# sm-watchdog-off is permanent and stays (rule S02).
+
+firmware = "59.00.540"
+mode = "apply"
+
+[[tweak]]
+id = "no-disclaimer"
+action = "uninstall"
+
+[[tweak]]
+id = "list-loop"
+action = "uninstall"

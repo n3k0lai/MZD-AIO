@@ -1,0 +1,15 @@
+# Starting example: CMU 2 (TA0A, 70.00.352B), check mode.
+# Check mode runs every preflight on the CMU, logs to the stick, and changes nothing.
+# Read mzd-tweaks.log from the stick, then switch to mode = "apply".
+#
+#   mzd-tweaks plan examples/cmu2-check.toml
+#   mzd-tweaks build examples/cmu2-check.toml --out /run/media/$USER/STICK --write
+
+firmware = "70.00.352B"
+mode = "check"
+
+[[tweak]]
+id = "no-disclaimer"
+
+[[tweak]]
+id = "list-loop"
